@@ -1,5 +1,6 @@
 package v1;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -9,7 +10,11 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -17,8 +22,11 @@ import java.util.ArrayList;
 
 public class MainBoard extends Application {
 
-    private static final int TILE_WIDTH = 75;
-    private static final int TILE_HEIGHT = 75;
+    private static final int TILE_WIDTH = 50;
+    private static final int TILE_HEIGHT = 50;
+
+    private static Text winningText = new Text();
+    private static Rectangle background = new Rectangle(0,0,TILE_WIDTH*9, TILE_HEIGHT*9);
     private static int[] lastClicked = new int[2];
     private static boolean xTurn = true;
     private static boolean playable = true;
@@ -63,12 +71,10 @@ public class MainBoard extends Application {
         return root;
     }
 
-
     public void start(Stage primaryStage) {
         primaryStage.setScene(new Scene(createContent()));
         primaryStage.show();
     }
-
 
     //this like the most important one
     public static void update() {
@@ -103,14 +109,48 @@ public class MainBoard extends Application {
         line.setStroke(Color.BLACK);
         line.setStrokeLineCap(StrokeLineCap.ROUND);
 
-        root.getChildren().addAll(line);
+        //background fade to white to announce winner
+        background.setFill(Color.WHITE);
+        background.setOpacity(0);
 
-        Timeline timeline = new Timeline();
-        KeyFrame endFrame = new KeyFrame(Duration.seconds(1),
+        root.getChildren().addAll(line, background);
+
+        //draw the line
+        Timeline timeline0 = new Timeline();
+        KeyFrame endFrame = new KeyFrame(Duration.millis(500),
                 new KeyValue(line.endXProperty(), boardCombo.localBoards[2].getXCenter()),
                 new KeyValue(line.endYProperty(), boardCombo.localBoards[2].getYCenter()));
-        timeline.getKeyFrames().addAll(endFrame);
-        timeline.play();
+        timeline0.getKeyFrames().addAll(endFrame);
+        timeline0.play();
+
+        //fade to white
+        Timeline timeline1 = new Timeline();
+        endFrame = new KeyFrame(Duration.millis(2000),
+                new KeyValue(background.opacityProperty(), .7));
+        timeline1.getKeyFrames().addAll(endFrame);
+        timeline1.setDelay(Duration.millis(1000)); //wait for
+        timeline1.play();
+
+        //winningText specs
+        winningText.setText("X Wins");
+        if(xTurn)
+            winningText.setText("O Wins");
+        winningText.setOpacity(0);
+        winningText.setFont(new Font(TILE_WIDTH*2));
+        winningText.setStroke(Color.BLACK);
+        winningText.setTranslateX(1.35*TILE_WIDTH);
+        winningText.setTranslateY(5*TILE_HEIGHT);
+
+        //Display winner
+        Timeline timeline2 = new Timeline();
+        endFrame = new KeyFrame(Duration.millis(1500),
+                new KeyValue(winningText.opacityProperty(), 1));
+        timeline2.getKeyFrames().addAll(endFrame);
+        timeline2.setDelay(Duration.millis(1500));
+        timeline2.play();
+
+
+        root.getChildren().addAll(winningText);
     }
 
     public static boolean getXTurn() {

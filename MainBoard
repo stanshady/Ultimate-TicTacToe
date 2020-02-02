@@ -6,10 +6,18 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -17,8 +25,10 @@ import java.util.ArrayList;
 
 public class MainBoard extends Application {
 
-    private static final int TILE_WIDTH = 75;
-    private static final int TILE_HEIGHT = 75;
+    private static final int TILE_WIDTH = 90;
+    private static final int TILE_HEIGHT = 90;
+
+    private static Rectangle background = new Rectangle(0, 0, TILE_WIDTH * 9, TILE_HEIGHT * 9);
     private static int[] lastClicked = new int[2];
     private static boolean xTurn = true;
     private static boolean playable = true;
@@ -63,12 +73,11 @@ public class MainBoard extends Application {
         return root;
     }
 
-
     public void start(Stage primaryStage) {
         primaryStage.setScene(new Scene(createContent()));
+        primaryStage.setTitle("Ultimate Tic-Tac-Toe");
         primaryStage.show();
     }
-
 
     //this like the most important one
     public static void update() {
@@ -77,21 +86,80 @@ public class MainBoard extends Application {
                 playable = false;
                 playWinAnimation(boardCombo);
             }
+
         }
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
                 globalBoard[r][c].border().setStroke(null);
             }
         }
-        if (playable) {
+
+        if (playable) { //nextSquare is available
             if (globalBoard[lastClicked[0]][lastClicked[1]].isLocalPlayable())
                 globalBoard[lastClicked[0]][lastClicked[1]].border().setStroke(Color.BLACK);
             else
+                //all playable squares are highlighted
                 for (int r = 0; r < 3; r++)
                     for (int c = 0; c < 3; c++)
                         if (globalBoard[r][c].isLocalPlayable())
                             globalBoard[r][c].border().setStroke(Color.BLACK);
         }
+
+        if (isDraw()) {
+            displayWinner(false);
+        }
+    }
+
+    public static boolean isDraw() {
+        boolean draw = true;
+        for (int r = 0; r < 3; r++)
+            for (int c = 0; c < 3; c++)
+                if (globalBoard[r][c].isLocalPlayable())
+                    draw = false;
+        return draw;
+    }
+
+    public static void displayWinner(boolean isWon) {
+        //background fades to white to announce winner
+        background.setFill(Color.WHITE);
+        background.setOpacity(0);
+
+        root.getChildren().addAll(background);
+
+        //winning line animation is 500 millis long
+        double delay = 1000;
+        if (!isWon)
+            delay = 500;
+
+        //fade to white
+        Timeline timeline = new Timeline();
+        KeyFrame endFrame = new KeyFrame(Duration.millis(2000),
+                new KeyValue(background.opacityProperty(), .8));
+        timeline.getKeyFrames().addAll(endFrame);
+        timeline.setDelay(Duration.millis(delay));
+        timeline.play();
+
+        //winningText
+        Text winningText = new Text();
+        winningText.setText("X Wins");
+        if (xTurn)
+            winningText.setText("O Wins");
+        if (isDraw())
+            winningText.setText(" Draw ");
+        winningText.setOpacity(0);
+        winningText.setFont(new Font(TILE_WIDTH * 2));
+        winningText.setStroke(Color.BLACK);
+        winningText.setTranslateX(1.35 * TILE_WIDTH);
+        winningText.setTranslateY(5 * TILE_HEIGHT);
+        root.getChildren().addAll(winningText);
+
+        //Display winner
+        Timeline timeline2 = new Timeline();
+        endFrame = new KeyFrame(Duration.millis(1500),
+                new KeyValue(winningText.opacityProperty(), 1));
+        timeline2.getKeyFrames().addAll(endFrame);
+        timeline2.setDelay(Duration.millis(1500));
+        timeline2.play();
     }
 
     public static void playWinAnimation(BoardCombo boardCombo) {
@@ -105,12 +173,49 @@ public class MainBoard extends Application {
 
         root.getChildren().addAll(line);
 
-        Timeline timeline = new Timeline();
-        KeyFrame endFrame = new KeyFrame(Duration.seconds(1),
+        //draw the line
+        Timeline timeline0 = new Timeline();
+        KeyFrame endFrame = new KeyFrame(Duration.millis(500),
                 new KeyValue(line.endXProperty(), boardCombo.localBoards[2].getXCenter()),
                 new KeyValue(line.endYProperty(), boardCombo.localBoards[2].getYCenter()));
-        timeline.getKeyFrames().addAll(endFrame);
-        timeline.play();
+        timeline0.getKeyFrames().addAll(endFrame);
+        timeline0.play();
+
+        displayWinner(true);
+    }
+
+    //this sucks.  don't use
+    private void replayBox() {
+        /* Replay box:
+         * StackPane <- Vbox <-(Label, HBox <-(ButtonYes, ButtonNo))
+         */
+        Button yes = new Button("Yes");
+        Button no = new Button("No");
+
+        Label playAgain = new Label("Play Again?");
+        HBox hBox = new HBox(5);
+        hBox.getChildren().addAll(yes, no);
+
+        VBox vBox = new VBox(10);
+        vBox.getChildren().addAll(playAgain, hBox);
+
+        Rectangle hideReplayBox = new Rectangle(100, 100);
+        hideReplayBox.setFill(Color.WHITE);
+
+        StackPane replayPane = new StackPane();
+        replayPane.getChildren().addAll(vBox, hideReplayBox);
+        replayPane.setTranslateX(TILE_WIDTH * 4);
+        replayPane.setTranslateY(TILE_HEIGHT * 5.2);
+
+        //Get rid of hideReplayBox
+        Timeline timeline3 = new Timeline();
+        KeyFrame endFrame = new KeyFrame(Duration.millis(1),
+                new KeyValue(hideReplayBox.opacityProperty(), 0));
+        timeline3.getKeyFrames().addAll(endFrame);
+        timeline3.setDelay(Duration.millis(3000));
+        timeline3.play();
+
+        root.getChildren().addAll(replayPane);
     }
 
     public static boolean getXTurn() {

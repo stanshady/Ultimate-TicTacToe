@@ -12,7 +12,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-
 import java.util.ArrayList;
 
 public class LocalBoard extends Pane {
@@ -71,7 +70,7 @@ public class LocalBoard extends Pane {
                 localBoard[2][0]));
 
         /*
-        The LocalBoard's actual width is 3*TILE_WIDTH
+        A LocalBoard's actual width is 3*TILE_WIDTH
         (same with height) since it is a 3x3 grid of tiles.
          */
         int WIDTH = 3 * TILE_WIDTH;
@@ -231,6 +230,8 @@ public class LocalBoard extends Pane {
 
             setOnMouseClicked(event -> {
                 if (event.getButton() == MouseButton.PRIMARY) {
+
+                    //All the reasons a local tile won't continue processing a mouse click:
                     if (!isEmpty() || !localPlayable || !MainBoard.getPlayable() || border().getStroke() == null)
                         return;
 

@@ -20,7 +20,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.util.ArrayList;
 
 public class MainBoard extends Application {
@@ -86,6 +85,7 @@ public class MainBoard extends Application {
             if (boardCombo.isComplete()) {
                 playable = false;
                 playWinAnimation(boardCombo);
+                break; //if no break, then more than one line can be drawn sometimes
             }
         }
 
@@ -149,7 +149,7 @@ public class MainBoard extends Application {
         winningText.setText("X Wins");
         if (xTurn)
             winningText.setText("O Wins");
-        if (isDraw())
+        if(!isWon)
             winningText.setText(" Draw ");
         winningText.setOpacity(0);
         winningText.setFont(new Font(TILE_WIDTH * 2));

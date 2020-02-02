@@ -81,32 +81,36 @@ public class MainBoard extends Application {
 
     //this like the most important one
     public static void update() {
+        //check for winner
         for (BoardCombo boardCombo : boardCombos) {
             if (boardCombo.isComplete()) {
                 playable = false;
                 playWinAnimation(boardCombo);
             }
-
         }
+
+        //check for draw
+        if (playable)
+            if (isDraw()) {
+                playable = false;
+                displayWinner(false);
+            }
+
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
                 globalBoard[r][c].border().setStroke(null);
             }
         }
 
-        if (playable) { //nextSquare is available
+        if (playable) { //lastClicked square is available
             if (globalBoard[lastClicked[0]][lastClicked[1]].isLocalPlayable())
                 globalBoard[lastClicked[0]][lastClicked[1]].border().setStroke(Color.BLACK);
             else
-                //all playable squares are highlighted
+                //lastClicked was not available. All playable squares are highlighted
                 for (int r = 0; r < 3; r++)
                     for (int c = 0; c < 3; c++)
                         if (globalBoard[r][c].isLocalPlayable())
                             globalBoard[r][c].border().setStroke(Color.BLACK);
-        }
-
-        if (isDraw()) {
-            displayWinner(false);
         }
     }
 
@@ -126,10 +130,11 @@ public class MainBoard extends Application {
 
         root.getChildren().addAll(background);
 
-        //winning line animation is 500 millis long
-        double delay = 1000;
-        if (!isWon)
-            delay = 500;
+        //winning line animation is 500 millis long.
+        //I put an additional 500 delay as default.
+        double delay = 500;
+        if (isWon)
+            delay = 1000;
 
         //fade to white
         Timeline timeline = new Timeline();
@@ -153,7 +158,7 @@ public class MainBoard extends Application {
         winningText.setTranslateY(5 * TILE_HEIGHT);
         root.getChildren().addAll(winningText);
 
-        //Display winner
+        //Fade in winningText
         Timeline timeline2 = new Timeline();
         endFrame = new KeyFrame(Duration.millis(1500),
                 new KeyValue(winningText.opacityProperty(), 1));

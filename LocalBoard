@@ -231,7 +231,6 @@ public class LocalBoard extends Pane {
 
             setOnMouseClicked(event -> {
                 if (event.getButton() == MouseButton.PRIMARY) {
-
                     if (!isEmpty() || !localPlayable || !MainBoard.getPlayable() || border().getStroke() == null)
                         return;
 

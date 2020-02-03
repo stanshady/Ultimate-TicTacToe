@@ -200,23 +200,25 @@ public class MainBoard extends Application {
         root.getChildren().addAll(line);
 
         //draw the line
-        Timeline timeline0 = new Timeline();
+        Timeline timeline = new Timeline();
         KeyFrame endFrame = new KeyFrame(Duration.millis(500),
                 new KeyValue(line.endXProperty(), boardCombo.localBoards[2].getXCenter()),
                 new KeyValue(line.endYProperty(), boardCombo.localBoards[2].getYCenter()));
-        timeline0.getKeyFrames().addAll(endFrame);
-        timeline0.play();
+        timeline.getKeyFrames().addAll(endFrame);
+        timeline.play();
 
         displayWinner(true);
     }
 
     private static void resetGame() {
+        //reset all variables
         xTurn = true;
         playable = true;
         root.getChildren().clear();
         globalBoard = new LocalBoard[3][3];
         boardCombos = new ArrayList<>();
 
+        //repopulate
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 LocalBoard localBoard = new LocalBoard(TILE_WIDTH, TILE_HEIGHT);
@@ -229,16 +231,14 @@ public class MainBoard extends Application {
             }
         }
         //add da combos
-        for (int row = 0; row < 3; row++) {
+        for (int row = 0; row < 3; row++)
             boardCombos.add(new BoardCombo(globalBoard[row][0],
                     globalBoard[row][1],
                     globalBoard[row][2]));
-        }
-        for (int col = 0; col < 3; col++) {
+        for (int col = 0; col < 3; col++)
             boardCombos.add(new BoardCombo(globalBoard[0][col],
                     globalBoard[1][col],
                     globalBoard[2][col]));
-        }
         boardCombos.add(new BoardCombo(globalBoard[0][0],
                 globalBoard[1][1],
                 globalBoard[2][2]));
@@ -247,17 +247,17 @@ public class MainBoard extends Application {
                 globalBoard[2][0]));
     }
 
-    // Vbox <-(Label, HBox <-(ButtonYes, ButtonNo))
+    // VBox <-(Label, HBox <-(ButtonYes, ButtonNo))
     private static void replayBox() {
         Button yes = new Button("Yes");
         Button no = new Button("No");
 
-        //button functionality
         yes.setOnAction(event -> resetGame());
         no.setOnAction(event -> stage.close());
 
         Label playAgain = new Label("Play Again?");
         playAgain.setFont(new Font(15));
+
         HBox hBox = new HBox(5);
         hBox.getChildren().addAll(yes, no);
 
@@ -270,12 +270,12 @@ public class MainBoard extends Application {
         root.getChildren().addAll(vBox);
 
         //Change opacity to show replay box
-        Timeline timeline3 = new Timeline();
+        Timeline timeline = new Timeline();
         KeyFrame endFrame = new KeyFrame(Duration.millis(1),
                 new KeyValue(vBox.opacityProperty(), 1));
-        timeline3.getKeyFrames().addAll(endFrame);
-        timeline3.setDelay(Duration.millis(3500));
-        timeline3.play();
+        timeline.getKeyFrames().addAll(endFrame);
+        timeline.setDelay(Duration.millis(3500));
+        timeline.play();
     }
 
     public static boolean getXTurn() {

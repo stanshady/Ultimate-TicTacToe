@@ -8,9 +8,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -20,6 +20,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
 import java.util.ArrayList;
 
 public class MainBoard extends Application {
@@ -27,6 +28,7 @@ public class MainBoard extends Application {
     private static final int TILE_WIDTH = 90;
     private static final int TILE_HEIGHT = 90;
 
+    private static Stage stage;
     private static Rectangle background = new Rectangle(0, 0, TILE_WIDTH * 9, TILE_HEIGHT * 9);
     private static int[] lastClicked = new int[2];
     private static boolean xTurn = true;
@@ -38,6 +40,7 @@ public class MainBoard extends Application {
     private Parent createContent() {
 
         root.setPrefSize(TILE_WIDTH * 9, TILE_HEIGHT * 9);
+        root.setBackground(Background.EMPTY);
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
@@ -73,12 +76,14 @@ public class MainBoard extends Application {
     }
 
     public void start(Stage primaryStage) {
+        stage = primaryStage;
         primaryStage.setScene(new Scene(createContent()));
         primaryStage.setTitle("Ultimate Tic-Tac-Toe");
         primaryStage.show();
     }
 
-    //this like the most important one
+    //main logic control.  It is run any time
+    //a tile changes state from a mouseclick
     public static void update() {
         //check for winner
         for (BoardCombo boardCombo : boardCombos) {
@@ -149,12 +154,12 @@ public class MainBoard extends Application {
         winningText.setText("X Wins");
         if (xTurn)
             winningText.setText("O Wins");
-        if(!isWon)
+        if (!isWon)
             winningText.setText(" Draw ");
         winningText.setOpacity(0);
         winningText.setFont(new Font(TILE_WIDTH * 2));
         winningText.setStroke(Color.BLACK);
-        winningText.setTranslateX(1.35 * TILE_WIDTH);
+        winningText.setTranslateX(1.4 * TILE_WIDTH);
         winningText.setTranslateY(5 * TILE_HEIGHT);
         root.getChildren().addAll(winningText);
 
@@ -165,6 +170,8 @@ public class MainBoard extends Application {
         timeline2.getKeyFrames().addAll(endFrame);
         timeline2.setDelay(Duration.millis(1500));
         timeline2.play();
+
+        replayBox();
     }
 
     public static void playWinAnimation(BoardCombo boardCombo) {
@@ -189,38 +196,72 @@ public class MainBoard extends Application {
         displayWinner(true);
     }
 
-    //this sucks.  don't use
-    private void replayBox() {
-        /* Replay box:
-         * StackPane <- Vbox <-(Label, HBox <-(ButtonYes, ButtonNo))
-         */
+    private static void resetGame() {
+        xTurn = true;
+        playable = true;
+        root.getChildren().clear();
+        globalBoard = new LocalBoard[3][3];
+        boardCombos = new ArrayList<>();
+
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                LocalBoard localBoard = new LocalBoard(TILE_WIDTH, TILE_HEIGHT);
+                localBoard.setTranslateX(row * TILE_WIDTH * 3);
+                localBoard.setTranslateY(col * TILE_HEIGHT * 3);
+
+                globalBoard[row][col] = localBoard;
+
+                root.getChildren().addAll(localBoard);
+            }
+        }
+        //add da combos
+        for (int row = 0; row < 3; row++) {
+            boardCombos.add(new BoardCombo(globalBoard[row][0],
+                    globalBoard[row][1],
+                    globalBoard[row][2]));
+        }
+        for (int col = 0; col < 3; col++) {
+            boardCombos.add(new BoardCombo(globalBoard[0][col],
+                    globalBoard[1][col],
+                    globalBoard[2][col]));
+        }
+        boardCombos.add(new BoardCombo(globalBoard[0][0],
+                globalBoard[1][1],
+                globalBoard[2][2]));
+        boardCombos.add(new BoardCombo(globalBoard[0][2],
+                globalBoard[1][1],
+                globalBoard[2][0]));
+    }
+
+    private static void replayBox() {
+        // Vbox <-(Label, HBox <-(ButtonYes, ButtonNo))
         Button yes = new Button("Yes");
         Button no = new Button("No");
 
+        //button functionality
+        yes.setOnAction(event -> resetGame());
+        no.setOnAction(event -> stage.close());
+
         Label playAgain = new Label("Play Again?");
+        //playAgain.;
         HBox hBox = new HBox(5);
         hBox.getChildren().addAll(yes, no);
 
         VBox vBox = new VBox(10);
         vBox.getChildren().addAll(playAgain, hBox);
+        vBox.setOpacity(0);
+        vBox.setTranslateX(TILE_WIDTH * 4);
+        vBox.setTranslateY(TILE_HEIGHT * 5.2);
 
-        Rectangle hideReplayBox = new Rectangle(100, 100);
-        hideReplayBox.setFill(Color.WHITE);
+        root.getChildren().addAll(vBox);
 
-        StackPane replayPane = new StackPane();
-        replayPane.getChildren().addAll(vBox, hideReplayBox);
-        replayPane.setTranslateX(TILE_WIDTH * 4);
-        replayPane.setTranslateY(TILE_HEIGHT * 5.2);
-
-        //Get rid of hideReplayBox
+        //Change opacity to show replay box
         Timeline timeline3 = new Timeline();
         KeyFrame endFrame = new KeyFrame(Duration.millis(1),
-                new KeyValue(hideReplayBox.opacityProperty(), 0));
+                new KeyValue(vBox.opacityProperty(), 1));
         timeline3.getKeyFrames().addAll(endFrame);
-        timeline3.setDelay(Duration.millis(3000));
+        timeline3.setDelay(Duration.millis(3500));
         timeline3.play();
-
-        root.getChildren().addAll(replayPane);
     }
 
     public static boolean getXTurn() {
@@ -240,8 +281,7 @@ public class MainBoard extends Application {
         lastClicked[1] = col;
     }
 
-
-    private class BoardCombo {
+    private static class BoardCombo {
         private LocalBoard[] localBoards;
 
         BoardCombo(LocalBoard... localBoards) {

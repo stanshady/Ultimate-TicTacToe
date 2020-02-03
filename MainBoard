@@ -40,8 +40,9 @@ public class MainBoard extends Application {
     private Parent createContent() {
 
         root.setPrefSize(TILE_WIDTH * 9, TILE_HEIGHT * 9);
-        root.setBackground(Background.EMPTY);
+        root.setBackground(Background.EMPTY); //otherwise it isn't white
 
+        //populate globalBoard
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 LocalBoard localBoard = new LocalBoard(TILE_WIDTH, TILE_HEIGHT);
@@ -82,15 +83,18 @@ public class MainBoard extends Application {
         primaryStage.show();
     }
 
-    //main logic control.  It is run any time
-    //a tile changes state from a mouseclick
+    /*
+     * update() is main logic control.  It is run any time
+     * a tile changes state from a mouseclick.
+     * mouseclicks are processed in the tile class.
+     */
     public static void update() {
         //check for winner
         for (BoardCombo boardCombo : boardCombos) {
             if (boardCombo.isComplete()) {
                 playable = false;
                 playWinAnimation(boardCombo);
-                break; //if no break, then more than one line can be drawn sometimes
+                break; //if we don't break, then more than one line can be drawn sometimes
             }
         }
 
@@ -101,17 +105,20 @@ public class MainBoard extends Application {
                 displayWinner(false);
             }
 
+        //clear all highlighted localBoards
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
                 globalBoard[r][c].border().setStroke(null);
             }
         }
 
-        if (playable) { //lastClicked square is available
+        //highlight playable localBoard(s) for next turn.
+        if (playable) {
+            //lastClicked localBoard is available
             if (globalBoard[lastClicked[0]][lastClicked[1]].isLocalPlayable())
                 globalBoard[lastClicked[0]][lastClicked[1]].border().setStroke(Color.BLACK);
             else
-                //lastClicked was not available. All playable squares are highlighted
+                //lastClicked was not available. All playable localBoards are highlighted
                 for (int r = 0; r < 3; r++)
                     for (int c = 0; c < 3; c++)
                         if (globalBoard[r][c].isLocalPlayable())
@@ -141,10 +148,16 @@ public class MainBoard extends Application {
         if (isWon)
             delay = 1000;
 
+        /*
+         * I use Timeline objects instead of FadeTransitions
+         * because I want to be able to control the delay.
+         * I'm sure you can do that with ft too...
+         */
+
         //fade to white
         Timeline timeline = new Timeline();
         KeyFrame endFrame = new KeyFrame(Duration.millis(2000),
-                new KeyValue(background.opacityProperty(), .8));
+                new KeyValue(background.opacityProperty(), .9));
         timeline.getKeyFrames().addAll(endFrame);
         timeline.setDelay(Duration.millis(delay));
         timeline.play();
@@ -175,6 +188,7 @@ public class MainBoard extends Application {
     }
 
     public static void playWinAnimation(BoardCombo boardCombo) {
+        //line that passes through the three winning localBoards
         Line line = new Line(boardCombo.localBoards[0].getXCenter(),
                 boardCombo.localBoards[0].getYCenter(),
                 boardCombo.localBoards[0].getXCenter(),
@@ -233,8 +247,8 @@ public class MainBoard extends Application {
                 globalBoard[2][0]));
     }
 
+    // Vbox <-(Label, HBox <-(ButtonYes, ButtonNo))
     private static void replayBox() {
-        // Vbox <-(Label, HBox <-(ButtonYes, ButtonNo))
         Button yes = new Button("Yes");
         Button no = new Button("No");
 
@@ -243,7 +257,7 @@ public class MainBoard extends Application {
         no.setOnAction(event -> stage.close());
 
         Label playAgain = new Label("Play Again?");
-        //playAgain.;
+        playAgain.setFont(new Font(15));
         HBox hBox = new HBox(5);
         hBox.getChildren().addAll(yes, no);
 
@@ -281,6 +295,8 @@ public class MainBoard extends Application {
         lastClicked[1] = col;
     }
 
+    //Stores all possible winning triple combos of localBoards
+    //and also checks win condition through isComplete()
     private static class BoardCombo {
         private LocalBoard[] localBoards;
 

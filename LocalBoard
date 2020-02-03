@@ -25,9 +25,10 @@ public class LocalBoard extends Pane {
     private boolean localPlayable;
     private int countTurns;
     private Rectangle border;
-    private Ellipse ellipse; //for "O"
 
-    //for the "X"... sigh
+    //for "O"
+    private Ellipse ellipse;
+    //for the "X"
     private Line down;
     private Line up;
 
@@ -147,9 +148,11 @@ public class LocalBoard extends Pane {
             }
         }
 
-        if (countTurns >= 9) {
-            localPlayable = false;
-            fadeOut(0.5);
+        if (localPlayable) {
+            if (countTurns >= 9) {
+                localPlayable = false;
+                fadeOut(0.5);
+            }
         }
     }
 
@@ -213,7 +216,7 @@ public class LocalBoard extends Pane {
             setOnMouseClicked(event -> {
                 if (event.getButton() == MouseButton.PRIMARY) {
 
-                    //All the reasons a local tile won't continue processing a mouse click:
+                    //Filter all the reasons a local tile won't continue processing a mouse click:
                     if (!isEmpty() || !localPlayable || !MainBoard.getPlayable() || border().getStroke() == null)
                         return;
 

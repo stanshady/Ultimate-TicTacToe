@@ -127,9 +127,7 @@ public class LocalBoard extends Pane {
         up.setStroke(null);
 
         getChildren().addAll(hor0, hor1, ver0, ver1, border, ellipse, down, up);
-
     }
-
 
     private void update() {
         for (TileCombo tileCombo : TILE_COMBOS) {
@@ -137,11 +135,11 @@ public class LocalBoard extends Pane {
                 localPlayable = false;
 
                 //getXTurn is backwards since update is called
-                //after the variable gets updated
-                if (MainBoard.getXTurn()) {
+                //after the xTurn gets updated
+                if (MainBoard.getXTurn()) { //draw an "O"
                     ellipse.setStroke(Color.BLUE);
 
-                } else {
+                } else { //draw an "X"
                     down.setStroke(Color.DARKRED);
                     up.setStroke(Color.DARKRED);
                 }
@@ -190,22 +188,6 @@ public class LocalBoard extends Pane {
     //getter
     public Rectangle border() {
         return border;
-    }
-
-    private class TileCombo {
-        private Tile[] tiles;
-
-        TileCombo(Tile... tiles) {
-            this.tiles = tiles;
-        }
-
-        public boolean isComplete() {
-            if (tiles[0].isEmpty())
-                return false;
-
-            return tiles[0].getText().equals(tiles[1].getText())
-                    && tiles[1].getText().equals(tiles[2].getText());
-        }
     }
 
     //Tiles for small X's and 0's
@@ -267,6 +249,24 @@ public class LocalBoard extends Pane {
 
         private boolean isEmpty() {
             return text.getText().equals("");
+        }
+    }
+
+    //Stores all possible winning triple combos of tiles
+    //and also checks win condition through isComplete()
+    private class TileCombo {
+        private Tile[] tiles;
+
+        TileCombo(Tile... tiles) {
+            this.tiles = tiles;
+        }
+
+        public boolean isComplete() {
+            if (tiles[0].isEmpty())
+                return false;
+
+            return tiles[0].getText().equals(tiles[1].getText())
+                    && tiles[1].getText().equals(tiles[2].getText());
         }
     }
 }
